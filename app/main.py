@@ -43,7 +43,8 @@ async def predict(
       print(prediction)
 
     return {
-        "name": file.filename,
+        'name': file.filename,
+        'type':file.content_type,
         'class': prediction,
         'confidence': float(confidence)
     }
