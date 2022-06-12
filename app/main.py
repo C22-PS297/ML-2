@@ -1,6 +1,7 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Form
 from keras.preprocessing import image
 from keras.saving.saved_model.load import load
+from skimage import io
 import uvicorn
 import cv2
 import os
@@ -15,19 +16,9 @@ app = FastAPI(debug=True)
 
 MODEL = tf.keras.models.load_model("app/my_model/transfer_model (1).h5")
 
-@app.get("/", include_in_schema=False)
-async def index():
-    return RedirectResponse(url="/docs")
-
-def read_file_as_image(data) -> np.ndarray:
-    image = np.array(Image.open(BytesIO(data)))
-    return image
-
 @app.post("/predict")
-async def predict(
-    file: UploadFile = File(...)
-):
-    image = read_file_as_image(await file.read())
+async def predict(url: str = Form()):
+    image = io.imread(url);
     img = cv2.resize(image,(224,224)) 
     img = img.reshape(224,224,3) 
 
@@ -43,8 +34,6 @@ async def predict(
       print(prediction)
 
     return {
-        'name': file.filename,
-        'type':file.content_type,
         'class': prediction,
         'confidence': float(confidence)
     }
